@@ -1,4 +1,4 @@
-package ru.sinara.cryptoon.core.sign;
+package ru.sinara.cryptoon.core.jcsp.sign;
 
 import ru.sinara.cryptoon.core.Signed;
 
