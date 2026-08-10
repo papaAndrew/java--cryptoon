@@ -80,6 +80,28 @@
             <systemPath>${project.basedir}/lib/cmsutil.jar</systemPath>
         </dependency>
 
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/bcprov-jdk18on-1.78.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcutil</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/bcutil-jdk18on-1.78.1.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/bcpkix-jdk18on-1.78.1.jar</systemPath>
+        </dependency>
+
         <!-- Transitive forced dependencies -->
         <dependency>
             <groupId>javax.servlet</groupId>

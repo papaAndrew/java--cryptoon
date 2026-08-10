@@ -1,4 +1,4 @@
-package ru.sinara.cryptoon.core.jcsp;
+package ru.sinara.cryptoon.core;
 
 import ru.CryptoPro.JCP.JCP;
 
