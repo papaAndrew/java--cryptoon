@@ -101,6 +101,20 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/lib/bcpkix-jdk18on-1.78.1.jar</systemPath>
         </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>JCPRevCheck</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/JCPRevCheck.jar</systemPath>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>JCPRevTools</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/JCPRevTools.jar</systemPath>
+        </dependency>
 
         <!-- Transitive forced dependencies -->
         <dependency>

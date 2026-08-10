@@ -44,10 +44,12 @@ class JcspSignatureImplTest {
 
 
     @Test
-    void createJcspSignature_Test() {
-        var bytes = digitalSignature.sign("Some data".getBytes());
+    void createCadesSignature_Test() {
+        var bytes = digitalSignature.signCades("Some data".getBytes());
         assertNotNull(bytes);
         assertEquals(64, bytes.length);
+
+        System.out.println("bytes = " + new String(bytes));
 
         var enc = Base64.getEncoder().encode(bytes);
         System.out.println("enc = " + new String(enc));

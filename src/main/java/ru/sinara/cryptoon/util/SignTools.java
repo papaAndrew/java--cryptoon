@@ -1,168 +1,77 @@
 package ru.sinara.cryptoon.util;
 
-import org.bouncycastle.asn1.cms.AttributeTable;
+import com.objsys.asn1j.runtime.*;
 import ru.CryptoPro.CAdES.CAdESSignature;
-import ru.CryptoPro.CAdES.CAdESSigner;
-import ru.CryptoPro.CAdES.CAdESType;
-import ru.CryptoPro.JCP.tools.Array;
-import ru.sinara.cryptoon.config.IConfiguration;
+import ru.CryptoPro.JCP.ASN.PKIX1Explicit88.Time;
+import ru.CryptoPro.JCP.params.OID;
+import ru.sinara.cryptoon.exception.CryptoOperationException;
 
 import java.io.*;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.Certificate;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static ru.sinara.cryptoon.util.CMStools.STR_CMS_OID_DATA;
 
 public class SignTools {
 
-    /**
-     * Хеширование потока данных.
-     *
-     * @param cAdESSignature Объект класса CAdESSignature.
-     * @param dataStream Поток данных.
-     * @throws Exception
-     */
     public static void cadesSignatureUpdate(CAdESSignature cAdESSignature, InputStream dataStream) throws Exception {
 
-        final int buffer_size = 1024*1024;
+        final int buffer_size = 1024 * 1024;
         byte[] buffer = new byte[buffer_size];
         int read;
 
-        while ( (read = dataStream.read(buffer, 0, buffer_size)) > 0 ) {
+        while ((read = dataStream.read(buffer, 0, buffer_size)) > 0) {
             cAdESSignature.update(buffer, 0, read);
-        } // while
+        }
 
     }
 
-    /**
-     * Создание CAdES-подписи с двумя подписантами: CAdES-BES и
-     * CAdES-X Long Type 1.
-     *
-     * @param config Конфигурация подписи.
-     * @param outFileName Файл для сохранения подписи.
-     * @throws Exception
-     */
-    public static void createMixedSignatureWith2Signers(IConfiguration config, String outFileName) throws Exception {
-        InputStream signatureStream = createMixedSignatureWith2SignersAsStream(config, outFileName);
-        signatureStream.close();
+
+    public static byte[] calcDigest(byte[] bytes, String digestAlgorithmName, String providerName) {
+        //calculation messageDigest
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
+            final MessageDigest digest = MessageDigest.getInstance(digestAlgorithmName, providerName);
+            final DigestInputStream digestStream = new DigestInputStream(stream, digest);
+            while (digestStream.available() != 0) {
+                digestStream.read();
+            };
+            return digest.digest();
+        } catch (IOException | NoSuchAlgorithmException | NoSuchProviderException e) {
+            throw new CryptoOperationException("Calculate digest failure", e);
+        }
+
     }
 
 
-    /**
-     * Создание CAdES-подписи с двумя подписантами: CAdES-BES и
-     * CAdES-X Long Type 1.
-     *
-     * @param config Конфигурация подписи.
-     * @param outFileName Файл для сохранения подписи.
-     * @return подпись.
-     * @throws Exception
-     */
-    public static InputStream createMixedSignatureWith2SignersAsStream(
-            IConfiguration config,
-            String outFileName
-    ) throws Exception {
-
-        CAdESSignature cadesSignature = new CAdESSignature(config.detached());
-
-        cadesSignature.setCertificateStore(config.getCertificateStore());
-        cadesSignature.setCRLStore(config.getCRLStore());
-
-        // Создаем подписанта CAdES-BES.
-        cadesSignature.addSigner(config.getProviderName(),
-                config.getDigestOid(),
-                config.getPublicKeyOid(),
-                config.getPrivateKey(),
-                config.getChain(),
-                CAdESType.CAdES_BES,
-                null,
-                false,
-                config.getSignedAttributes(),
-                config.getUnsignedAttributes(),
-                config.getCRLs());
-
-//        // Создаем подписанта CAdES-X Long Type 1.
-//        cadesSignature.addSigner(config.getProviderName(),
-//                config.getDigestOid(),
-//                config.getPublicKeyOid(),
-//                config.getPrivateKey(),
-//                config.getChain(),
-//                CAdESType.CAdES_X_Long_Type_1,
-//                config.getTSAAddress(),
-//                false,
-//                null,
-//                null,
-//                config.getCRLs());
-
-        // Сохраним подпись либо в файл, либо в массив.
-        OutputStream outSignatureStream = config.useStream()
-                ? new FileOutputStream(outFileName) : new ByteArrayOutputStream();
-
-        cadesSignature.open(outSignatureStream);
-        InputStream dataStream = config.getDataStream();
-        cadesSignatureUpdate(cadesSignature, dataStream); // хеш
-
-        // Завершаем создание подписи с двумя подписантами.
-        cadesSignature.close();
-        dataStream.close();
-        outSignatureStream.close();
-
-        CAdESSigner[] signers = cadesSignature.getCAdESSignerInfos();
-        for (int i = 0; i < signers.length; i++) {
-
-            CAdESSigner signer = signers[i];
-
-            // Только ему могут подаваться атрибуты (см. выше).
-            if (signer.getSignatureType().equals(CAdESType.CAdES_BES)) {
-
-                AttributeTable cdsAttrs = signer.getSignerSignedAttributes();
-                if (config.getSignedAttributes() != null) {
-                    if (config.getSignedAttributes().size() != cdsAttrs.size()) {
-                        throw new Exception("Invalid count of signed attributes in " +
-                                "CAdES signature # " + i);
-                    } // if
-                } // if
-                else {
-                    if (cdsAttrs != null) {
-                        throw new Exception("Count of signed attributes must be null " +
-                                "in CAdES signature # " + i);
-                    } // if
-                } // else
-
-                cdsAttrs = signer.getSignerUnsignedAttributes();
-                if (config.getUnsignedAttributes() != null) {
-                    if (config.getUnsignedAttributes().size() != cdsAttrs.size()) {
-                        throw new Exception("Invalid count of unsigned attributes in " +
-                                "CAdES signature # " + i);
-                    } // if
-                } // if
-                else {
-                    if (cdsAttrs != null) {
-                        throw new Exception("Count of unsigned attributes must be null " +
-                                "in CAdES signature # " + i);
-                    } // if
-                } // else
-
-            } // if
-
-        } // for
-
-        InputStream signatureStream;
-
-        // Если это массив, сохраним и снова прочтем.
-        if (!config.useStream() && outSignatureStream instanceof ByteArrayOutputStream) {
-
-            byte[] cadesCms = ((ByteArrayOutputStream)outSignatureStream).toByteArray();
-
-            if (outFileName != null) {
-                Array.writeFile(outFileName, cadesCms);
-            } // if
-
-            // Подпись.
-            signatureStream = new ByteArrayInputStream(cadesCms);
-
-        } // if
-        else {
-            // Читаем подпись.
-            signatureStream = new FileInputStream(outFileName);
-        } // else
-
-        return signatureStream;
+    public static List<X509Certificate> mapX509Chain(Certificate[] chain) {
+        return Arrays.stream(chain)
+                .filter(c -> c instanceof X509Certificate)
+                .map(c -> (X509Certificate) c)
+                .collect(Collectors.toList());
     }
+
+    public static Time getCurrentTime() {
+        final Time time = new Time();
+        final Asn1UTCTime UTCTime = new Asn1UTCTime();
+        Calendar calendar = Calendar.getInstance();
+        try {
+            UTCTime.setTime(calendar);
+        } catch (Asn1Exception e) {
+            throw new CryptoOperationException("Get ASN1 UTC Time failed", e);
+        }
+        time.set_utcTime(UTCTime);
+        return time;
+    }
+
+
+
 
 }
