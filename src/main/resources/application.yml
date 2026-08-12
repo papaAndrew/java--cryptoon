@@ -1,0 +1,7 @@
+
+quarkus:
+  native:
+    add-all-charsets: true
+
+  http:
+    port: 8081
