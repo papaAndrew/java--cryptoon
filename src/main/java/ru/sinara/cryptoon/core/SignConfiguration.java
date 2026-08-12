@@ -1,33 +1,43 @@
 package ru.sinara.cryptoon.core;
 
+import com.objsys.asn1j.runtime.Asn1Type;
 import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.cert.X509CRLHolder;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.util.CollectionStore;
 import ru.CryptoPro.JCP.ASN.PKIX1Explicit88.Attribute;
+import ru.CryptoPro.JCP.ASN.PKIX1Explicit88.Attribute_values;
+import ru.CryptoPro.JCP.params.OID;
 
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public interface SignConfiguration {
     PrivateKey getPrivateKey();
     X509Certificate getCertificate();
     List<X509Certificate> getChain();
-    Collection<X509CertificateHolder> getChainHolder();
     Set<X509CRL> getCRLs();
-    Collection<X509CRLHolder> getCRLsHolder();
     Attribute[] getSignedAttributes();
     Attribute[] getUnsignedAttributes();
     CollectionStore<X509Certificate> getCertificateStore();
     CollectionStore<X509CRL> getCRLStore();
     byte[] getData();
     boolean isDetached();
+
+    public static Attribute getSingleAsn1Attribute(String key, Asn1Type value) {
+        var ident = new OID(key).value;
+        var values = new Attribute_values(1);
+        values.elements[0] = value;
+        return new Attribute(ident, values);
+    }
+
+    public static Attribute getSingleAsn1Attribute(Map.Entry<String, Asn1Type> entry) {
+        return getSingleAsn1Attribute(entry.getKey(), entry.getValue()) ;
+    }
+
 
     static JcspConfigurationBuilder builder() {
         return new JcspConfigurationBuilder();
@@ -52,13 +62,17 @@ public interface SignConfiguration {
             return this;
         }
 
-        public JcspConfigurationBuilder signedAttributes(List<Attribute> signedAttributes) {
-            configuration.signedAttributes.addAll(signedAttributes);
+        public JcspConfigurationBuilder signedAttributes(Map<String, Asn1Type> attributes) {
+            configuration.signedAttributes = attributes.entrySet().stream()
+                    .map(SignConfiguration::getSingleAsn1Attribute)
+                    .toArray(Attribute[]::new);
             return this;
         }
 
-        public JcspConfigurationBuilder unsignedAttributes(List<Attribute> unsignedAttributes) {
-            configuration.unsignedAttributes.addAll(unsignedAttributes);
+        public JcspConfigurationBuilder unsignedAttributes(Map<String, Asn1Type> attributes) {
+            configuration.unsignedAttributes = attributes.entrySet().stream()
+                    .map(SignConfiguration::getSingleAsn1Attribute)
+                    .toArray(Attribute[]::new);
             return this;
         }
 

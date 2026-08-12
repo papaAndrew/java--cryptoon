@@ -7,14 +7,12 @@ import ru.CryptoPro.JCP.params.OID;
 import ru.sinara.cryptoon.exception.CryptoOperationException;
 
 import java.io.*;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,7 +68,6 @@ public class SignTools {
         time.set_utcTime(UTCTime);
         return time;
     }
-
 
 
 

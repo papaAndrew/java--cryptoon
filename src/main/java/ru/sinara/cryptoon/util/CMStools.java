@@ -3,8 +3,11 @@ package ru.sinara.cryptoon.util;
 import com.objsys.asn1j.runtime.Asn1Exception;
 import com.objsys.asn1j.runtime.Asn1Type;
 import com.objsys.asn1j.runtime.Asn1UTCTime;
+import ru.CryptoPro.JCP.ASN.PKIX1Explicit88.Attribute;
+import ru.CryptoPro.JCP.ASN.PKIX1Explicit88.Attribute_values;
 import ru.CryptoPro.JCP.ASN.PKIX1Explicit88.Time;
 import ru.CryptoPro.JCP.JCP;
+import ru.CryptoPro.JCP.params.OID;
 import ru.CryptoPro.JCP.tools.Array;
 
 import java.io.*;
@@ -150,6 +153,7 @@ public class CMStools {
     // ГОСТ Р 34.10-2012 (512)
     public static final String DIGEST_OID_2012_512 = JCP.GOST_DIGEST_2012_512_OID;
     public static final String SIGN_OID_2012_512 = JCP.GOST_PARAMS_SIG_2012_512_KEY_OID;
+
 
 
 }

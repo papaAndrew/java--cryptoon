@@ -3,10 +3,11 @@ package ru.sinara.cryptoon.core.jcsp.sign;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import ru.sinara.cryptoon.jcsp.JcspOperationFactoryImpl;
+import ru.sinara.cryptoon.jcsp.ActionFactoryImpl;
 import ru.sinara.cryptoon.core.KeyStoreRegistrar;
-import ru.sinara.cryptoon.core.SignAlgorithm;
+import ru.sinara.cryptoon.jcsp.KeyEntryWrapper;
 import ru.sinara.cryptoon.jcsp.sign.DigitalSignature;
+import ru.sinara.cryptoon.jcsp.sign.JcspSignPkcsImpl;
 import wiremock.com.google.common.io.Files;
 
 import java.io.File;
@@ -24,30 +25,35 @@ class JcspSignatureImplTest {
     public static final String KEY_ALIAS = "myTest";
     public static final String KEY_PASSWORD = "123456";
 
-    private static KeyStore keyStore;
-    private static KeyStore.PasswordProtection keyPassword;
+    private static KeyEntryWrapper keyEntryWrapper;
 
     private DigitalSignature digitalSignature;
 
 
+
     @BeforeAll
     static void setUp() {
-        keyStore = KeyStoreRegistrar.createJcspKeyStore(KEYSTORE_PATH, KEYSTORE_PASSWORD.toCharArray());
-        keyPassword = new KeyStore.PasswordProtection(KEY_PASSWORD.toCharArray());
+        KeyStore keyStore = KeyStoreRegistrar.initJcspKeyStore(KEYSTORE_PASSWORD.toCharArray());
+        try {
+            keyEntryWrapper = KeyStoreRegistrar.getKeyEntryWrapper(keyStore, KEY_ALIAS, KEY_PASSWORD.toCharArray());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @BeforeEach
     void initTest() {
-        JcspOperationFactoryImpl jcspOperationFactory = new JcspOperationFactoryImpl(keyStore);
-        digitalSignature = jcspOperationFactory.createJcspDigitalSignature(SignAlgorithm.SIGN_2012_256, KEY_ALIAS, KEY_PASSWORD.toCharArray());
+        digitalSignature = new JcspSignPkcsImpl(keyEntryWrapper);
     }
 
 
     @Test
     void createCadesSignature_Test() {
-        var bytes = digitalSignature.signCades("Some data".getBytes());
+        assertNotNull(keyEntryWrapper);
+
+        var bytes = digitalSignature.sign("Some data".getBytes());
         assertNotNull(bytes);
-        assertEquals(64, bytes.length);
+        assertEquals(723, bytes.length);
 
         System.out.println("bytes = " + new String(bytes));
 
