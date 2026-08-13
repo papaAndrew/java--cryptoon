@@ -1,5 +1,6 @@
 package ru.sinara.cryptoon.core.jcsp.sign;
 
+import com.google.common.io.Files;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,7 +9,6 @@ import ru.sinara.cryptoon.core.KeyStoreRegistrar;
 import ru.sinara.cryptoon.jcsp.KeyEntryWrapper;
 import ru.sinara.cryptoon.jcsp.sign.DigitalSignature;
 import ru.sinara.cryptoon.jcsp.sign.JcspSignPkcsImpl;
-import wiremock.com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,6 @@ import java.security.*;
 import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static wiremock.org.hamcrest.MatcherAssert.assertThat;
 
 class JcspSignatureImplTest {
 

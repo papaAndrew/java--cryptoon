@@ -1,7 +1,16 @@
-
+"%dev":
+  smallrye:
+    config:
+      locations: /etc/dev.yaml
 quarkus:
   native:
     add-all-charsets: true
 
   http:
     port: 8081
+
+  log:
+    console:
+      json:
+        enabled: false
+        pretty-print: false
